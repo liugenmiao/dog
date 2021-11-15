@@ -96,7 +96,10 @@ int uuv_example_app_main(int argc, char *argv[])
 
 	int error_counter = 0;
 
-	for (int i = 0; i < 10; i++) {
+	
+	
+	while (1) {
+	//for (int i = 0; i < 10; i++) {
 		/* wait for sensor update of 1 file descriptor for 1000 ms (1 second) */
 		int poll_ret = px4_poll(fds, 1, 1000);
 

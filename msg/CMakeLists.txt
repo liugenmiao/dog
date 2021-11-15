@@ -55,6 +55,8 @@ set(msg_files
 	debug_vect.msg
 	differential_pressure.msg
 	distance_sensor.msg
+	dog_mission_count.msg
+	dog_mission_item.msg
 	ekf2_timestamps.msg
 	ekf_gps_drift.msg
 	ekf_gps_position.msg

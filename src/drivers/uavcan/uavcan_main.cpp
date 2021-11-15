@@ -64,12 +64,16 @@
 #include "uavcan_main.hpp"
 #include <uavcan/util/templates.hpp>
 
+#include <uavcan_stm32/can.hpp>
+
 #include <uavcan/protocol/param/ExecuteOpcode.hpp>
 
 //todo:The Inclusion of file_server_backend is killing
 // #include <sys/types.h> and leaving OK undefined
 # define OK 0
 
+using namespace uavcan_stm32;
+using namespace uavcan;
 /*
  * UavcanNode
  */
@@ -517,6 +521,10 @@ UavcanNode::start(uavcan::NodeID node_id, uint32_t bitrate)
 	static CanInitHelper *can = nullptr;
 
 	if (can == nullptr) {
+		
+		uavcan::CanFrame can_frame;
+		uavcan::MonotonicTime time;
+		CanIface *if0 = NULL;
 
 		can = new CanInitHelper();
 
@@ -531,6 +539,22 @@ UavcanNode::start(uavcan::NodeID node_id, uint32_t bitrate)
 			PX4_ERR("CAN driver init failed %i", can_init_res);
 			return can_init_res;
 		}
+		if0 = can->driver.getIface(0);
+
+
+		can_frame.id = uavcan::CanFrame::MaskStdID;
+		can_frame.data[0] = 0x01;
+    		can_frame.data[1] = 0x02;
+    		can_frame.data[2] = 0x03;
+    		can_frame.data[3] = 0x04;
+    		can_frame.data[4] = 0x05;
+    		can_frame.data[5] = 0x06;
+    		can_frame.data[6] = 0x07;
+    		can_frame.data[7] = 0x08;
+		can_frame.dlc = 8;
+
+		if0->send(can_frame, time, 0);
+		//can->driver.getIface(0)->send(can_frame, time, 0);
 	}
 
 	/*
@@ -707,7 +731,7 @@ UavcanNode::handle_time_sync(const uavcan::TimerEvent &)
 	 * Publish the sync message now, even if we're not a higher priority master.
 	 * Other nodes will be able to pick the right master anyway.
 	 */
-	_time_sync_master.publish();
+	//_time_sync_master.publish();
 }
 
 

@@ -549,6 +549,7 @@ MavlinkMissionManager::send(const hrt_abstime now)
 void
 MavlinkMissionManager::handle_message(const mavlink_message_t *msg)
 {
+	//printf("add by peter test mission\r\n");
 	switch (msg->msgid) {
 	case MAVLINK_MSG_ID_MISSION_ACK:
 		handle_mission_ack(msg);
@@ -571,14 +572,17 @@ MavlinkMissionManager::handle_message(const mavlink_message_t *msg)
 		break;
 
 	case MAVLINK_MSG_ID_MISSION_COUNT:
+		//printf("MAVLINK_MSG_ID_MISSION_COUNT\r\n");
 		handle_mission_count(msg);
 		break;
 
 	case MAVLINK_MSG_ID_MISSION_ITEM:
+		//printf("MAVLINK_MSG_ID_MISSION_ITEM\r\n");
 		handle_mission_item(msg);
 		break;
 
 	case MAVLINK_MSG_ID_MISSION_ITEM_INT:
+		//printf("MAVLINK_MSG_ID_MISSION_ITEM_INT\r\n");
 		handle_mission_item_int(msg);
 		break;
 
@@ -902,6 +906,12 @@ MavlinkMissionManager::handle_mission_count(const mavlink_message_t *msg)
 			_transfer_partner_sysid = msg->sysid;
 			_transfer_partner_compid = msg->compid;
 			_transfer_count = wpc.count;
+
+			//printf("wpc.count = %d\r\n", wpc.count);
+
+			_dog_mission_count.wp_count = wpc.count;
+			_dog_mission_count_pub.publish(_dog_mission_count);
+
 			_transfer_dataman_id = (_dataman_id == DM_KEY_WAYPOINTS_OFFBOARD_0 ? DM_KEY_WAYPOINTS_OFFBOARD_1 :
 						DM_KEY_WAYPOINTS_OFFBOARD_0);	// use inactive storage for transmission
 			_transfer_current_seq = -1;
@@ -1071,7 +1081,16 @@ MavlinkMissionManager::handle_mission_item_both(const mavlink_message_t *msg)
 
 				} else {
 					dm_item_t dm_item = _transfer_dataman_id;
+					//add by peter
+					//printf("wp.seq = %d lat:%f, lon:%f\r\n", wp.seq, mission_item.lat, mission_item.lon);
+					_dog_mission_item.wp_seq = wp.seq;
+					_dog_mission_item.speed = wp.param2;
+					_dog_mission_item.longitude = mission_item.lon;
+					_dog_mission_item.latitude = mission_item.lat;
 
+					orb_advertise_queue(ORB_ID(dog_mission_item), &_dog_mission_item, dog_mission_item_s::ORB_QUEUE_LENGTH);
+					//_dog_mission_item_pub.publish(_dog_mission_item);
+					
 					write_failed = dm_write(dm_item, wp.seq, DM_PERSIST_POWER_ON_RESET, &mission_item,
 								sizeof(struct mission_item_s)) != sizeof(struct mission_item_s);
 

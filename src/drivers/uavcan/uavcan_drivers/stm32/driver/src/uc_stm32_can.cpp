@@ -297,6 +297,7 @@ int CanIface::computeTimings(const uavcan::uint32_t target_bitrate, Timings &out
 uavcan::int16_t CanIface::send(const uavcan::CanFrame &frame, uavcan::MonotonicTime tx_deadline,
 			       uavcan::CanIOFlags flags)
 {
+	//add by peter  can send
 	if (frame.isErrorFrame() || frame.dlc > 8) {
 		return -ErrUnsupportedFrame;
 	}
@@ -382,6 +383,7 @@ uavcan::int16_t CanIface::send(const uavcan::CanFrame &frame, uavcan::MonotonicT
 uavcan::int16_t CanIface::receive(uavcan::CanFrame &out_frame, uavcan::MonotonicTime &out_ts_monotonic,
 				  uavcan::UtcTime &out_ts_utc, uavcan::CanIOFlags &out_flags)
 {
+	//add by peter, receive
 	out_ts_monotonic = clock::getMonotonic();  // High precision is not required for monotonic timestamps
 	uavcan::uint64_t utc_usec = 0;
 	{
@@ -495,6 +497,9 @@ bool CanIface::waitMsrINakBitStateChange(bool target_state)
 
 int CanIface::init(const uavcan::uint32_t bitrate, const OperatingMode mode)
 {
+
+	printf("6666666666666666666666666666\r\n");
+
 	/*
 	 * We need to silence the controller in the first order, otherwise it may interfere with the following operations.
 	 */
@@ -510,6 +515,10 @@ int CanIface::init(const uavcan::uint32_t bitrate, const OperatingMode mode)
 	if (!waitMsrINakBitStateChange(true)) {
 		UAVCAN_STM32_LOG("MSR INAK not set");
 		can_->MCR = bxcan::MCR_RESET;
+
+		printf("7777777777777777777777777777777777777777777777\r\n");
+
+
 		return -ErrMsrInakNotSet;
 	}
 
@@ -531,6 +540,7 @@ int CanIface::init(const uavcan::uint32_t bitrate, const OperatingMode mode)
 
 	if (timings_res < 0) {
 		can_->MCR = bxcan::MCR_RESET;
+		printf("88888888888888888888888888888\r\n");
 		return timings_res;
 	}
 
@@ -557,6 +567,7 @@ int CanIface::init(const uavcan::uint32_t bitrate, const OperatingMode mode)
 	if (!waitMsrINakBitStateChange(false)) {
 		UAVCAN_STM32_LOG("MSR INAK not cleared");
 		can_->MCR = bxcan::MCR_RESET;
+		printf("999999999999999999999\r\n");
 		return -ErrMsrInakNotCleared;
 	}
 
@@ -921,6 +932,7 @@ int CanDriver::init(const uavcan::uint32_t bitrate, const CanIface::OperatingMod
 {
 	int res = 0;
 
+	printf("22222222222222222222222222222222\r\n");
 	UAVCAN_STM32_LOG("Bitrate %lu mode %d", static_cast<unsigned long>(bitrate), static_cast<int>(mode));
 
 	static bool initialized_once = false;
@@ -940,6 +952,7 @@ int CanDriver::init(const uavcan::uint32_t bitrate, const CanIface::OperatingMod
 
 	if (res < 0) {                              // a typical race condition.
 		UAVCAN_STM32_LOG("Iface 0 init failed %i", res);
+		printf("4444444444444444444444444444444444444444\r\n");
 		ifaces[0] = UAVCAN_NULLPTR;
 		goto fail;
 	}
@@ -954,12 +967,14 @@ int CanDriver::init(const uavcan::uint32_t bitrate, const CanIface::OperatingMod
 
 	if (res < 0) {
 		UAVCAN_STM32_LOG("Iface 1 init failed %i", res);
+		printf("55555555555555555555555555555555555555\r\n");
 		ifaces[1] = UAVCAN_NULLPTR;
 		goto fail;
 	}
 
 #endif
 
+	printf("333333333333333333333333333333333333\r\n");
 	UAVCAN_STM32_LOG("CAN drv init OK");
 	UAVCAN_ASSERT(res >= 0);
 	return res;

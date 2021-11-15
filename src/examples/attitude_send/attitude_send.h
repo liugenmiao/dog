@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (C) 2012-2019 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2015 Mark Charlebois. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,68 +32,42 @@
  ****************************************************************************/
 
 /**
- * @file test_uart_send.c
- * Tests the uart send functionality.
+ * @file hello_example.h
+ * Example app for Linux
  *
- * @author Lorenz Meier <lorenz@px4.io>
+ * @author Mark Charlebois <charlebm@gmail.com>
  */
+#pragma once
 
-#include <px4_platform_common/px4_config.h>
+#include <px4_platform_common/app.h>
 
-#include <sys/types.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-
-#include <arch/board/board.h>
-
-#include "tests_main.h"
-
-#include <math.h>
-#include <float.h>
-#include <drivers/drv_hrt.h>
-
-
-int test_uart_send(int argc, char *argv[])
+class AttitudeSend
 {
-	/* input handling */
-	char *uart_name = "/dev/ttyS3";
+public:
+	AttitudeSend() {}
+	~AttitudeSend() {}
 
-	if (argc > 1) { uart_name = argv[1]; }
+	int main(int argc, char **argv);
+	void pack_float(uint8_t *buf, float val);
+	void pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z);
+	//void pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z, float acc_x, float acc_y, float acc_z);
+	//void pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z, float acc_x, float acc_y, float acc_z,
+	//					 uint8_t ch0, uint8_t ch1, uint8_t ch2, uint8_t ch3, uint8_t ch5, uint8_t ch8, uint8_t ch9);
+	int set_baudrate(int *uart_fd, unsigned baud);
+	
+	void pack_uint16(uint8_t *buf, uint16_t val);
+	void pack_rc(uint8_t *buf, uint16_t *values, uint8_t rc_lost);
 
-	/* assuming NuttShell is on UART1 (/dev/ttyS0) */
-	int test_uart = open(uart_name, O_RDWR | O_NONBLOCK | O_NOCTTY); //
 
-	if (test_uart < 0) {
-		printf("ERROR opening UART %s, aborting..\n", uart_name);
-		return test_uart;
+	void pack_double(uint8_t *buf, double val);
+	void pack_mission_count(uint8_t *buf, uint16_t count);
+	void pack_mission_item(uint8_t *buf, uint16_t seq, float speed, double longitude, double latitude);
 
-	} else {
-		printf("Writing to UART %s\n", uart_name);
-	}
+	static px4::AppState appState; /* track requests to terminate app */
 
-	char sample_test_uart[25];// = {'S', 'A', 'M', 'P', 'L', 'E', ' ', '\n'};
+private:
+	//int _serial_fd;
 
-	int i, n;
+};
 
-	uint64_t start_time = hrt_absolute_time();
 
-	for (i = 0; i < 30000; i++) {
-		n = sprintf(sample_test_uart, "SAMPLE #%d\n", i);
-		printf("%s\r\n", sample_test_uart);
-		write(test_uart, sample_test_uart, n);
-	}
-
-	int interval = hrt_absolute_time() - start_time;
-
-	int bytes = i * sizeof(sample_test_uart);
-
-	printf("Wrote %d bytes in %d ms on UART %s\n", bytes, interval / 1000, uart_name);
-
-	close(test_uart);
-
-	return 0;
-}

@@ -56,6 +56,8 @@ px4_add_board(
 		test_ppm
 		tone_alarm
 		uavcan
+		#can_external
+		#uavcannode
 	MODULES
 		airspeed_selector
 		attitude_estimator_q
@@ -122,4 +124,6 @@ px4_add_board(
 		px4_simple_app # Tutorial code from http://dev.px4.io/en/apps/hello_sky.html
 		rover_steering_control # Rover example app
 		uuv_example_app
+		attitude_send
+		dip_switch
 	)

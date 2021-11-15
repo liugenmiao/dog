@@ -4,4 +4,19 @@
 #------------------------------------------------------------------------------
 
 # Start MAVLink on the USB port
+
+
+#add by peter  selet MAVLINK or attitude send
+#dip_switch
+#if [ "$?" -eq 0 ]
+#then
+#	mavlink start -d /dev/ttyACM0
+#	echo "exec mavlink usb"
+#else
+#	attitude_send start
+#	echo "exec send attitude"
+#fi
+
+attitude_send start serial
 mavlink start -d /dev/ttyACM0
+

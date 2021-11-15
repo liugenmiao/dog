@@ -49,6 +49,10 @@
 #include <uORB/Publication.hpp>
 #include <uORB/Subscription.hpp>
 #include <uORB/topics/mission_result.h>
+#include <uORB/topics/dog_mission_count.h>
+#include <uORB/topics/dog_mission_item.h>
+
+#include <uORB/PublicationMulti.hpp>
 
 #include "mavlink_bridge_header.h"
 #include "mavlink_rate_limiter.h"
@@ -80,6 +84,12 @@ public:
 	explicit MavlinkMissionManager(Mavlink *mavlink);
 
 	~MavlinkMissionManager() = default;
+
+	dog_mission_count_s _dog_mission_count;
+	dog_mission_item_s _dog_mission_item;
+
+	uORB::PublicationMulti<dog_mission_count_s>  _dog_mission_count_pub{ORB_ID(dog_mission_count)};
+	uORB::PublicationMulti<dog_mission_item_s>  _dog_mission_item_pub{ORB_ID(dog_mission_item)};
 
 	/**
 	 * Handle sending of messages. Call this regularly at a fixed frequency.

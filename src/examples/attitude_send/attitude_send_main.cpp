@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (C) 2012-2019 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2015 Mark Charlebois. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,68 +32,26 @@
  ****************************************************************************/
 
 /**
- * @file test_uart_send.c
- * Tests the uart send functionality.
+ * @file hello_main.cpp
+ * Example for Linux
  *
- * @author Lorenz Meier <lorenz@px4.io>
+ * @author Mark Charlebois <charlebm@gmail.com>
  */
 
-#include <px4_platform_common/px4_config.h>
+#include "attitude_send.h"
 
-#include <sys/types.h>
-
+#include <px4_platform_common/app.h>
+#include <px4_platform_common/init.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
 
-#include <arch/board/board.h>
-
-#include "tests_main.h"
-
-#include <math.h>
-#include <float.h>
-#include <drivers/drv_hrt.h>
-
-
-int test_uart_send(int argc, char *argv[])
+int PX4_MAIN(int argc, char **argv)
 {
-	/* input handling */
-	char *uart_name = "/dev/ttyS3";
+	px4::init(argc, argv, "hello");
 
-	if (argc > 1) { uart_name = argv[1]; }
+	printf("hello, %s %s %s \n", argv[0], argv[1], argv[2]);
+	AttitudeSend hello;
+	hello.main(argc, argv);
 
-	/* assuming NuttShell is on UART1 (/dev/ttyS0) */
-	int test_uart = open(uart_name, O_RDWR | O_NONBLOCK | O_NOCTTY); //
-
-	if (test_uart < 0) {
-		printf("ERROR opening UART %s, aborting..\n", uart_name);
-		return test_uart;
-
-	} else {
-		printf("Writing to UART %s\n", uart_name);
-	}
-
-	char sample_test_uart[25];// = {'S', 'A', 'M', 'P', 'L', 'E', ' ', '\n'};
-
-	int i, n;
-
-	uint64_t start_time = hrt_absolute_time();
-
-	for (i = 0; i < 30000; i++) {
-		n = sprintf(sample_test_uart, "SAMPLE #%d\n", i);
-		printf("%s\r\n", sample_test_uart);
-		write(test_uart, sample_test_uart, n);
-	}
-
-	int interval = hrt_absolute_time() - start_time;
-
-	int bytes = i * sizeof(sample_test_uart);
-
-	printf("Wrote %d bytes in %d ms on UART %s\n", bytes, interval / 1000, uart_name);
-
-	close(test_uart);
-
+	printf("goodbye\n");
 	return 0;
 }

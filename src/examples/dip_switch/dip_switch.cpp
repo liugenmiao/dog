@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (C) 2012-2019 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2012-2016 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,68 +32,48 @@
  ****************************************************************************/
 
 /**
- * @file test_uart_send.c
- * Tests the uart send functionality.
+ * @file uuv_example_app.cpp
  *
- * @author Lorenz Meier <lorenz@px4.io>
+ * This file let the hippocampus drive in a circle and prints the orientation as well as the acceleration data.
+ * The HippoCampus is an autonomous underwater vehicle (AUV) designed by the Technical University Hamburg-Harburg (TUHH).
+ * https://www.tuhh.de/mum/forschung/forschungsgebiete-und-projekte/flow-field-estimation-with-a-swarm-of-auvs.html
+ *
+ * @author Nils Rottann <Nils.Rottmann@tuhh.de>
  */
 
 #include <px4_platform_common/px4_config.h>
-
-#include <sys/types.h>
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <px4_platform_common/tasks.h>
+#include <px4_platform_common/posix.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-
-#include <arch/board/board.h>
-
-#include "tests_main.h"
-
+#include <stdio.h>
+#include <poll.h>
+#include <string.h>
 #include <math.h>
-#include <float.h>
-#include <drivers/drv_hrt.h>
 
+// system libraries
+//#include <parameters/param.h>
+//#include <systemlib/err.h>
+//#include <perf/perf_counter.h>
 
-int test_uart_send(int argc, char *argv[])
+// internal libraries
+#include <lib/mathlib/mathlib.h>
+#include <matrix/math.hpp>
+#include <lib/ecl/geo/geo.h>
+
+// Include uORB and the required topics for this app
+#include <uORB/uORB.h>
+#include <uORB/topics/sensor_combined.h>                // this topics hold the acceleration data
+#include <uORB/topics/actuator_controls.h>              // this topic gives the actuators control input
+#include <uORB/topics/vehicle_attitude.h>                  // this topic holds the orientation of the hippocampus
+
+extern "C" __EXPORT int dip_switch_main(int argc, char *argv[]);
+
+int dip_switch_main(int argc, char *argv[])
 {
-	/* input handling */
-	char *uart_name = "/dev/ttyS3";
-
-	if (argc > 1) { uart_name = argv[1]; }
-
-	/* assuming NuttShell is on UART1 (/dev/ttyS0) */
-	int test_uart = open(uart_name, O_RDWR | O_NONBLOCK | O_NOCTTY); //
-
-	if (test_uart < 0) {
-		printf("ERROR opening UART %s, aborting..\n", uart_name);
-		return test_uart;
-
-	} else {
-		printf("Writing to UART %s\n", uart_name);
-	}
-
-	char sample_test_uart[25];// = {'S', 'A', 'M', 'P', 'L', 'E', ' ', '\n'};
-
-	int i, n;
-
-	uint64_t start_time = hrt_absolute_time();
-
-	for (i = 0; i < 30000; i++) {
-		n = sprintf(sample_test_uart, "SAMPLE #%d\n", i);
-		printf("%s\r\n", sample_test_uart);
-		write(test_uart, sample_test_uart, n);
-	}
-
-	int interval = hrt_absolute_time() - start_time;
-
-	int bytes = i * sizeof(sample_test_uart);
-
-	printf("Wrote %d bytes in %d ms on UART %s\n", bytes, interval / 1000, uart_name);
-
-	close(test_uart);
+	PX4_INFO("auv_hippocampus_example_app has been started!");
+	PX4_INFO("Exiting uuv_example_app!");
 
 	return 0;
 }
+
+

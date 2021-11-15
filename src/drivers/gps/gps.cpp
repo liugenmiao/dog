@@ -63,6 +63,7 @@
 #include "devices/src/emlid_reach.h"
 #include "devices/src/mtk.h"
 #include "devices/src/ubx.h"
+#include "devices/src/nmea.h"
 
 #ifdef __PX4_LINUX
 #include <linux/spi/spidev.h>
@@ -76,7 +77,8 @@ typedef enum {
 	GPS_DRIVER_MODE_UBX,
 	GPS_DRIVER_MODE_MTK,
 	GPS_DRIVER_MODE_ASHTECH,
-	GPS_DRIVER_MODE_EMLIDREACH
+	GPS_DRIVER_MODE_EMLIDREACH,
+	GPS_DRIVER_MODE_NMEA
 } gps_driver_mode_t;
 
 /* struct for dynamic allocation of satellite info data */
@@ -314,8 +316,8 @@ int GPS::callback(GPSCallbackType type, void *data1, int data2, void *user)
 
 	switch (type) {
 	case GPSCallbackType::readDeviceData: {
-			int num_read = gps->pollOrRead((uint8_t *)data1, data2, *((int *)data1));
-
+		int num_read = gps->pollOrRead((uint8_t *)data1, data2, *((int *)data1));
+			//PX4_ERR("uart read num = %d", num_read);
 			if (num_read > 0) {
 				gps->dumpGpsData((uint8_t *)data1, (size_t)num_read, false);
 			}
@@ -611,6 +613,8 @@ GPS::run()
 			return;
 		}
 
+		PX4_ERR("gps uart port: %s", _port);
+
 #ifdef __PX4_LINUX
 
 		if (_interface == GPSHelper::Interface::SPI) {
@@ -714,6 +718,11 @@ GPS::run()
 			case GPS_DRIVER_MODE_EMLIDREACH:
 				_helper = new GPSDriverEmlidReach(&GPS::callback, this, &_report_gps_pos, _p_report_sat_info);
 				break;
+			case GPS_DRIVER_MODE_NMEA:
+				//PX4_ERR("mode: %s", "nmea");
+				_helper = new GPSDriverNMEA(_interface, &GPS::callback, this, &_report_gps_pos, _p_report_sat_info,
+							   gps_ubx_dynmodel);
+			//	break;
 
 			default:
 				break;
@@ -736,8 +745,9 @@ GPS::run()
 
 				int helper_ret;
 
+				//printf("read uart _baudrate = %d\r\n", _baudrate);
 				while ((helper_ret = _helper->receive(TIMEOUT_5HZ)) > 0 && !should_exit()) {
-
+					printf("test ....................\r\n");
 					if (helper_ret & 1) {
 						publish();
 
@@ -818,6 +828,9 @@ GPS::run()
 					px4_usleep(500000); // tried all possible drivers. Wait a bit before next round
 					break;
 
+				case GPS_DRIVER_MODE_NMEA:
+					_mode = GPS_DRIVER_MODE_NMEA;
+					break;
 				default:
 					break;
 				}
@@ -876,6 +889,9 @@ GPS::print_status()
 			PX4_INFO("protocol: EMLIDREACH");
 			break;
 
+		case GPS_DRIVER_MODE_NMEA:
+			PX4_INFO("protocol: NMEA");
+			break;
 		default:
 			break;
 		}
@@ -1179,6 +1195,9 @@ GPS *GPS::instantiate(int argc, char *argv[], Instance instance)
 			} else if (!strcmp(myoptarg, "eml")) {
 				mode = GPS_DRIVER_MODE_EMLIDREACH;
 
+			} else if (!strcmp(myoptarg, "nmea")) {
+				mode = GPS_DRIVER_MODE_NMEA;
+			
 			} else {
 				PX4_ERR("unknown interface: %s", myoptarg);
 				error_flag = true;

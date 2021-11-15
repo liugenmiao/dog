@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (C) 2012-2019 PX4 Development Team. All rights reserved.
+ *   Copyright (C) 2015 Mark Charlebois. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,68 +32,67 @@
  ****************************************************************************/
 
 /**
- * @file test_uart_send.c
- * Tests the uart send functionality.
+ * @file hello_start_posix.cpp
  *
- * @author Lorenz Meier <lorenz@px4.io>
+ * @author Thomas Gubler <thomasgubler@gmail.com>
+ * @author Mark Charlebois <mcharleb@gmail.com>
  */
+#include "attitude_send.h"
 
-#include <px4_platform_common/px4_config.h>
-
-#include <sys/types.h>
-
+#include <px4_platform_common/log.h>
+#include <px4_platform_common/app.h>
+#include <px4_platform_common/tasks.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
+#include <string.h>
+#include <sched.h>
 
-#include <arch/board/board.h>
+static int daemon_task;             /* Handle of deamon task / thread */
 
-#include "tests_main.h"
+//using namespace px4;
 
-#include <math.h>
-#include <float.h>
-#include <drivers/drv_hrt.h>
-
-
-int test_uart_send(int argc, char *argv[])
+extern "C" __EXPORT int attitude_send_main(int argc, char *argv[]);
+int attitude_send_main(int argc, char *argv[])
 {
-	/* input handling */
-	char *uart_name = "/dev/ttyS3";
 
-	if (argc > 1) { uart_name = argv[1]; }
-
-	/* assuming NuttShell is on UART1 (/dev/ttyS0) */
-	int test_uart = open(uart_name, O_RDWR | O_NONBLOCK | O_NOCTTY); //
-
-	if (test_uart < 0) {
-		printf("ERROR opening UART %s, aborting..\n", uart_name);
-		return test_uart;
-
-	} else {
-		printf("Writing to UART %s\n", uart_name);
+	if (argc < 2) {
+		PX4_WARN("usage: hello {start|stop|status}\n");
+		return 1;
 	}
 
-	char sample_test_uart[25];// = {'S', 'A', 'M', 'P', 'L', 'E', ' ', '\n'};
+	if (!strcmp(argv[1], "start")) {
 
-	int i, n;
+		if (AttitudeSend::appState.isRunning()) {
+			PX4_INFO("already running\n");
+			/* this is not an error */
+			return 0;
+		}
+		printf("%s %s\r\n", argv[2], argv[3]);
+		daemon_task = px4_task_spawn_cmd("attitude send",
+						 SCHED_DEFAULT,
+						 SCHED_PRIORITY_MAX - 5,
+						 4096,
+						 PX4_MAIN,
+						 (argv) ? (char *const *)&argv[2] : (char *const *)nullptr);
 
-	uint64_t start_time = hrt_absolute_time();
-
-	for (i = 0; i < 30000; i++) {
-		n = sprintf(sample_test_uart, "SAMPLE #%d\n", i);
-		printf("%s\r\n", sample_test_uart);
-		write(test_uart, sample_test_uart, n);
+		return 0;
 	}
 
-	int interval = hrt_absolute_time() - start_time;
+	if (!strcmp(argv[1], "stop")) {
+		AttitudeSend::appState.requestExit();
+		return 0;
+	}
 
-	int bytes = i * sizeof(sample_test_uart);
+	if (!strcmp(argv[1], "status")) {
+		if (AttitudeSend::appState.isRunning()) {
+			PX4_INFO("is running\n");
 
-	printf("Wrote %d bytes in %d ms on UART %s\n", bytes, interval / 1000, uart_name);
+		} else {
+			PX4_INFO("not started\n");
+		}
 
-	close(test_uart);
+		return 0;
+	}
 
-	return 0;
+	PX4_WARN("usage: hello_main {start|stop|status}\n");
+	return 1;
 }

@@ -37,6 +37,7 @@
  * Board-specific CAN functions.
  */
 
+
 #ifdef CONFIG_CAN
 
 #include <errno.h>
