@@ -49,8 +49,8 @@ public:
 
 	int main(int argc, char **argv);
 	void pack_float(uint8_t *buf, float val);
-	void pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z);
-	//void pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z, float acc_x, float acc_y, float acc_z);
+	uint8_t pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z);
+	uint8_t pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z, float acc_x, float acc_y, float acc_z);
 	//void pack_attitude_angular_velocity(uint8_t *buf, float pitch, float roll, float yaw, float x, float y, float z, float acc_x, float acc_y, float acc_z,
 	//					 uint8_t ch0, uint8_t ch1, uint8_t ch2, uint8_t ch3, uint8_t ch5, uint8_t ch8, uint8_t ch9);
 	int set_baudrate(int *uart_fd, unsigned baud);
@@ -62,6 +62,7 @@ public:
 	void pack_double(uint8_t *buf, double val);
 	void pack_mission_count(uint8_t *buf, uint16_t count);
 	void pack_mission_item(uint8_t *buf, uint16_t seq, float speed, double longitude, double latitude);
+	int pack_gps(uint8_t *buf, uint8_t sate, float eph, float epv, float lat, float lon, float alt);
 
 	static px4::AppState appState; /* track requests to terminate app */
 

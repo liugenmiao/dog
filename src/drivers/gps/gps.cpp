@@ -747,7 +747,6 @@ GPS::run()
 
 				//printf("read uart _baudrate = %d\r\n", _baudrate);
 				while ((helper_ret = _helper->receive(TIMEOUT_5HZ)) > 0 && !should_exit()) {
-					printf("test ....................\r\n");
 					if (helper_ret & 1) {
 						publish();
 
