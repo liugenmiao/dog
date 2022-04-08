@@ -63,7 +63,6 @@
 #include "devices/src/emlid_reach.h"
 #include "devices/src/mtk.h"
 #include "devices/src/ubx.h"
-#include "devices/src/nmea.h"
 
 #ifdef __PX4_LINUX
 #include <linux/spi/spidev.h>
@@ -720,8 +719,8 @@ GPS::run()
 				break;
 			case GPS_DRIVER_MODE_NMEA:
 				//PX4_ERR("mode: %s", "nmea");
-				_helper = new GPSDriverNMEA(_interface, &GPS::callback, this, &_report_gps_pos, _p_report_sat_info,
-							   gps_ubx_dynmodel);
+				//_helper = new GPSDriverNMEA(_interface, &GPS::callback, this, &_report_gps_pos, _p_report_sat_info,
+				//			   gps_ubx_dynmodel);
 			//	break;
 
 			default:
