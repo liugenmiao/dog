@@ -355,7 +355,10 @@ int AttitudeSend::main(int argc, char **argv)
         }
 	
 	//set_baudrate(&test_uart, 460800);//bau is 115200
-	set_baudrate(&test_uart, 256000);//bau is 256000
+	//set_baudrate(&test_uart, 115200);//bau is 256000
+	//set_baudrate(&test_uart, 256000);//bau is 256000
+	//set_baudrate(&test_uart, 460800);//bau is 256000
+	set_baudrate(&test_uart, 921600);//bau is 256000
 	
 	while (!appState.exitRequested()) {
 
